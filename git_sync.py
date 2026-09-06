@@ -41,6 +41,13 @@ def ensure_repo():
 
 def pull_latest():
     ensure_repo()
+    # If there are uncommitted local changes (e.g. a flag just set but not
+    # yet pushed), skip the reset this cycle - a hard reset would wipe them
+    # before they get a chance to be committed, causing things like the
+    # daily inactivity-nudge flag to be lost and re-trigger repeatedly.
+    code, out, err = _run(["git", "status", "--porcelain"])
+    if out.strip():
+        return
     _run(["git", "fetch", "origin", "main"])
     _run(["git", "reset", "--hard", "origin/main"])
 

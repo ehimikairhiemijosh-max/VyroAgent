@@ -37,10 +37,10 @@ import string
 
 CREDITS_LINE = (
     "\n\n┏━━━━━━━━━━━━━━━┓\n"
-    "   𝐂𝐑𝐄𝐃𝐈𝐓𝐒: @GALAXYGAMEZSUPPORT\n"
+    f"   𝐂𝐑𝐄𝐃𝐈𝐓𝐒: {SUPPORT_HANDLE.upper()}\n"
     "┗━━━━━━━━━━━━━━━┛"
 )
-BOT_NAME = "𝐆𝐀𝐋𝐀𝐗𝐘 𝐀𝐔𝐓𝐎 𝐏𝐎𝐒𝐓𝐄𝐑"
+BOT_NAME = "𝐕𝐘𝐑𝐎 𝐀𝐆𝐄𝐍𝐓"
 
 
 # ---------------- KEYBOARDS ----------------
@@ -210,7 +210,7 @@ def send_join_gate(chat_id, first_name=None):
     send_message(
         chat_id,
         f"{greeting} Welcome to {BOT_NAME}.\n\n"
-        f"Before we get started, please join the official Galaxy Gamez "
+        f"Before we get started, please join the official Sonari Games "
         f"channels and groups below - this keeps you in the loop on "
         f"updates, new features, and support. Once you've joined "
         f"everything, tap the button underneath to continue."
@@ -773,7 +773,7 @@ def cmd_report_bug(chat_id, user_id, users):
         chat_id,
         "🐛 Describe the bug or issue you're facing - be as specific as possible "
         "(what you tapped, what you expected, what happened instead). "
-        "It goes straight to the Galaxy Gamez team.",
+        "It goes straight to the Vyro Agent team.",
         reply_markup=cancel_only_keyboard(),
     )
 
@@ -1183,7 +1183,7 @@ def handle_message_all_message(chat_id, user_id, users, message):
     for uid in users:
         if uid == "__admin__":
             continue
-        r = send_message(uid, f"📣 Message from the Galaxy Gamez team:\n\n{text}")
+        r = send_message(uid, f"📣 Message from the Vyro Agent team:\n\n{text}")
         if r.get("ok"):
             sent += 1
     send_message(chat_id, f"✅ Sent to {sent} user(s).", reply_markup=keyboard_for(user_id))
@@ -1227,7 +1227,7 @@ def handle_msguser_text_message(chat_id, user_id, users, message):
     if not text:
         send_message(chat_id, "Send text only for now.", reply_markup=cancel_only_keyboard())
         return True
-    send_message(target_id, f"💬 Message from the Galaxy Gamez team:\n\n{text}")
+    send_message(target_id, f"💬 Message from the Vyro Agent team:\n\n{text}")
     send_message(chat_id, f"✅ Sent to {target_id}. Send another, or tap ❌ Cancel when done.", reply_markup=cancel_only_keyboard())
     return True
 
@@ -1721,7 +1721,7 @@ def handle_callback(callback, users):
         u = get_user(users, user_id)
         u["terms_accepted"] = True
         answer_callback(callback["id"], "Thanks!")
-        send_message(chat_id, "✅ Terms accepted. Welcome to Galaxy Gamez!", reply_markup=keyboard_for(user_id))
+        send_message(chat_id, "✅ Terms accepted. Welcome to Vyro Agent!", reply_markup=keyboard_for(user_id))
         return
 
     if data.startswith("est_ch_"):

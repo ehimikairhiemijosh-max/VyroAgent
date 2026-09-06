@@ -151,37 +151,39 @@ def _is_in_free_trial(u):
 
 
 def ensure_default_admin(users):
-    """Make sure Josh's own 6 channels exist in the new multi-user system.
-    Also self-heals if the __admin__ record exists but somehow ended up
-    with an empty channel list - that state could otherwise persist
-    forever, since the old check only fired when the key was fully absent."""
+    """Keeps Josh's own channels in sync with DEFAULT_CHANNEL_IDS: adds any
+    new channel, drops any removed one, and leaves existing matching
+    channels (their posted history/schedule) untouched."""
     admin_id = "__admin__"
-    needs_setup = admin_id not in users or not users[admin_id].get("channels")
+    legacy = _legacy_posted_links()
+    existing = users.get(admin_id, {})
+    existing_channels = {c["channel_id"]: c for c in existing.get("channels", [])}
 
-    if needs_setup:
-        legacy = _legacy_posted_links()
-        existing = users.get(admin_id, {})
-        users[admin_id] = {
-            "is_admin": True,
-            "banned": existing.get("banned", False),
-            "strikes": existing.get("strikes", 0),
-            "onboarding": existing.get("onboarding", {"step": None, "pending_channel_id": None}),
-            "channels": [
-                {
-                    "channel_id": cid,
-                    "title": "Galaxy Gamez",
-                    "blog_feed_url": DEFAULT_BLOG_FEED_URL,
-                    "paused": False,
-                    "posted": list(legacy),  # seeded from old shared history
-                    "interval_hours": DEFAULT_INTERVAL_HOURS,
-                    "posts_per_cycle": DEFAULT_POSTS_PER_CYCLE,
-                    "caption_template": None,  # unused - admin always uses build_caption
-                    "last_posted_at": None,
-                }
-                for cid in DEFAULT_CHANNEL_IDS
-            ],
-        }
-        print(f"ensure_default_admin: (re)initialized __admin__ with {len(DEFAULT_CHANNEL_IDS)} channels")
+    new_channels = []
+    for cid in DEFAULT_CHANNEL_IDS:
+        if cid in existing_channels:
+            new_channels.append(existing_channels[cid])  # keep as-is
+        else:
+            new_channels.append({
+                "channel_id": cid,
+                "title": "Sonari Games",
+                "blog_feed_url": DEFAULT_BLOG_FEED_URL,
+                "paused": False,
+                "posted": list(legacy),
+                "interval_hours": DEFAULT_INTERVAL_HOURS,
+                "posts_per_cycle": DEFAULT_POSTS_PER_CYCLE,
+                "caption_template": None,
+                "last_posted_at": None,
+            })
+            print(f"ensure_default_admin: added new channel {cid}")
+
+    users[admin_id] = {
+        "is_admin": True,
+        "banned": existing.get("banned", False),
+        "strikes": existing.get("strikes", 0),
+        "onboarding": existing.get("onboarding", {"step": None, "pending_channel_id": None}),
+        "channels": new_channels,
+    }
     return users
 
 

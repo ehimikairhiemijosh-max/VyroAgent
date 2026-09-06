@@ -12,12 +12,16 @@ GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 GITHUB_REPOSITORY = os.environ.get("GITHUB_REPOSITORY", "")
 
 # ---------------- JOSH'S OWN CHANNELS (default/admin account) ----------------
+# Using @usernames directly (not numeric IDs) - Telegram's API accepts
+# either for public channels, and this avoids needing to look up IDs
+# manually every time a channel is renamed.
 DEFAULT_CHANNEL_IDS = [
-    -1002328517911,  # main channel
-    -1002392805703,
-    -1002685110307,
-    -1002353908594,
-    -1002721819829,
+    "@VYROCORP",
+    "@SONARIGAMEZ",
+    "@sonrigames2",
+    "@SONARIGAMESCHAT",
+    "@pcgamingbeasts",
+    "@GALAXYGAMEZ01BACKUP",
 ]
 DEFAULT_BLOG_FEED_URL = "https://galaxygamez01.blogspot.com/feeds/posts/default?max-results=500"
 
@@ -26,17 +30,17 @@ WHATSAPP_LINKS = [
     "https://whatsapp.com/channel/0029Vb46RraF6smzVwGhZL2H",
     "https://whatsapp.com/channel/0029Vb56sG2IHphDA7uhWJ3C",
 ]
-TELEGRAM_LINK = "https://t.me/GALAXYGAMEZ01"
+TELEGRAM_LINK = "https://t.me/SONARIGAMEZ"
 WEBSITE_LINK = "https://galaxygamez01.blogspot.com"
-SUPPORT_HANDLE = "@galaxygamezsupport"
+SUPPORT_HANDLE = "@VYROllC"
 
 # ---------------- FORCE-JOIN GATE ----------------
 # Public @usernames the bot checks membership against before answering ANY command.
 FORCE_JOIN_CHATS = [
-    {"username": "GALAXYGAMEZ01", "label": "📢 Channel 1", "url": "https://t.me/GALAXYGAMEZ01"},
-    {"username": "galaxygamez02", "label": "📢 Channel 2", "url": "https://t.me/galaxygamez02"},
-    {"username": "GALAXYGAMEZCHAT", "label": "💬 Group 1", "url": "https://t.me/GALAXYGAMEZCHAT"},
-    {"username": "galaxygamezchat2", "label": "💬 Group 2", "url": "https://t.me/galaxygamezchat2"},
+    {"username": "VYROCORP", "label": "📢 Vyro Corp", "url": "https://t.me/VYROCORP"},
+    {"username": "SONARIGAMEZ", "label": "📢 Sonari Games 1", "url": "https://t.me/SONARIGAMEZ"},
+    {"username": "sonrigames2", "label": "📢 Sonari Games 2", "url": "https://t.me/sonrigames2"},
+    {"username": "SONARIGAMESCHAT", "label": "💬 Sonari Games Chat", "url": "https://t.me/SONARIGAMESCHAT"},
 ]
 
 # ---------------- POSTING BEHAVIOUR ----------------
@@ -66,7 +70,7 @@ GEMZ_COST_PER_CHANNEL_PER_DAY = 2  # flat daily upkeep per active connected chan
 DEFAULT_GENERIC_TEMPLATE = (
     "📰 {title}\n\n"
     "🔗 {link}\n\n"
-    "Powered by Galaxy Gamez Post Assistant"
+    "Powered by Vyro Corp"
 )
 
 # ---------------- CHANNEL LIMITS ----------------
