@@ -33,8 +33,17 @@ def ensure_repo():
         return
     if os.path.exists(os.path.join(REPO_DIR, ".git")):
         return
+    print(f"git_sync: cloning {GITHUB_REPOSITORY} into {REPO_DIR}...")
     url = f"https://x-access-token:{GITHUB_TOKEN}@github.com/{GITHUB_REPOSITORY}.git"
-    subprocess.run(["git", "clone", url, REPO_DIR], capture_output=True, text=True)
+    result = subprocess.run(["git", "clone", url, REPO_DIR], capture_output=True, text=True)
+    if result.returncode != 0 or not os.path.exists(os.path.join(REPO_DIR, ".git")):
+        print(
+            f"git_sync: CLONE FAILED - check that GITHUB_REPOSITORY "
+            f"('{GITHUB_REPOSITORY}') exactly matches your repo's "
+            f"username/reponame and that GITHUB_TOKEN is valid.\n"
+            f"Git said: {result.stderr.strip()}"
+        )
+        return
     _run(["git", "config", "user.name", "render-bot"])
     _run(["git", "config", "user.email", "render-bot@galaxygamez.local"])
 
