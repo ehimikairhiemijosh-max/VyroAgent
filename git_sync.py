@@ -5,7 +5,6 @@ the same JSON files. Since there's no separate database, git itself is the
 source of truth. This module keeps the local working copy in sync before
 every read and pushes after every write, with a retry-on-conflict pattern.
 """
-
 import os
 import subprocess
 import time
@@ -48,32 +47,82 @@ def ensure_repo():
     _run(["git", "config", "user.email", "render-bot@galaxygamez.local"])
 
 
+def _unpushed_commit_count():
+    """How many local commits on HEAD haven't been pushed to origin/main."""
+    code, out, err = _run(["git", "rev-list", "origin/main..HEAD", "--count"])
+    if code != 0:
+        return 0
+    try:
+        return int(out.strip())
+    except ValueError:
+        return 0
+
+
 def pull_latest():
     ensure_repo()
-    # If there are uncommitted local changes (e.g. a flag just set but not
-    # yet pushed), skip the reset this cycle - a hard reset would wipe them
-    # before they get a chance to be committed, causing things like the
-    # daily inactivity-nudge flag to be lost and re-trigger repeatedly.
+
+    # Guard 1: uncommitted working-directory changes (e.g. a flag just set
+    # but not yet committed) - a hard reset would wipe them before they get
+    # a chance to be committed.
     code, out, err = _run(["git", "status", "--porcelain"])
     if out.strip():
         return
+
+    # Refresh what origin/main actually has before comparing against it.
     _run(["git", "fetch", "origin", "main"])
+
+    # Guard 2 (the fix): a LOCAL COMMIT that was made but failed to push
+    # (e.g. it collided with a GitHub Actions commit landing around the
+    # same time). A hard reset here would silently destroy that commit -
+    # this is what was causing the Telegram update offset to get stuck and
+    # the nudge/"Feed refreshed" messages to keep re-firing every cycle.
+    # Instead of resetting, try to get the unpushed commit onto origin first.
+    if _unpushed_commit_count() > 0:
+        print("git_sync: found unpushed local commit(s), pushing instead of resetting.")
+        code, out, err = _run(["git", "push", "origin", "main"])
+        if code == 0:
+            return
+
+        print("git_sync: push rejected, rebasing onto origin/main.")
+        code, out, err = _run(["git", "rebase", "origin/main"])
+        if code == 0:
+            code, out, err = _run(["git", "push", "origin", "main"])
+            if code == 0:
+                return
+
+        # Rebase/push still failing - abort any half-finished rebase and
+        # skip the reset this cycle (so the commit isn't destroyed). Will
+        # retry again automatically next cycle.
+        _run(["git", "rebase", "--abort"])
+        print("git_sync: could not push or rebase unpushed commit, will retry next cycle.")
+        return
+
     _run(["git", "reset", "--hard", "origin/main"])
 
 
 def push_changes(message, files):
     """files: list of filenames (relative to repo root) to commit. Retries
-    once on conflict by pulling and re-applying (git handles this fine since
-    each JSON write is a full-file overwrite from load->modify->save)."""
+    once on conflict by fetching + rebasing onto origin/main and re-applying
+    (git handles this fine since each JSON write is a full-file overwrite
+    from load->modify->save). Rebasing here (not resetting) is what protects
+    the commit this function just made instead of it getting thrown away."""
     for attempt in range(2):
         _run(["git", "add"] + files)
         code, out, err = _run(["git", "commit", "-m", message])
         if "nothing to commit" in (out + err):
             return True
+
         code, out, err = _run(["git", "push", "origin", "main"])
         if code == 0:
             return True
-        # push rejected - pull latest and retry once
-        pull_latest()
+
+        # push rejected - fetch + rebase onto the latest remote, then retry.
+        _run(["git", "fetch", "origin", "main"])
+        code, out, err = _run(["git", "rebase", "origin/main"])
+        if code != 0:
+            _run(["git", "rebase", "--abort"])
+            print(f"git_sync: rebase conflict pushing {files}, aborting this attempt.")
+            return False
         time.sleep(1)
+
     return False
