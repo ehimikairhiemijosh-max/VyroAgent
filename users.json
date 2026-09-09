@@ -13,18 +13,19 @@
     "channels": [
       {
         "channel_id": "@VYROCORP",
-        "title": "Sonari Games",
+        "title": "\u4e97 \ud835\ude51\ud835\ude54\ud835\ude4d\ud835\ude4a \ud835\ude3e\ud835\ude4a\ud835\ude4d\ud835\ude4b \u4e97",
         "blog_feed_url": "https://galaxygamez01.blogspot.com/feeds/posts/default?max-results=500",
         "paused": false,
         "posted": [],
         "interval_hours": 3,
         "posts_per_cycle": 3,
         "caption_template": null,
-        "last_posted_at": null
+        "last_posted_at": null,
+        "username": "VYROCORP"
       },
       {
         "channel_id": "@SONARIGAMEZ",
-        "title": "Sonari Games",
+        "title": "\ud835\ude4e\ud835\ude4a\ud835\ude49\ud835\ude3c\ud835\ude4d\ud835\ude44 \ud835\ude42\ud835\ude3c\ud835\ude48\ud835\ude40\ud835\ude4e\u2122",
         "blog_feed_url": "https://galaxygamez01.blogspot.com/feeds/posts/default?max-results=500",
         "paused": false,
         "posted": [
@@ -69,16 +70,20 @@
           "https://galaxygamez01.blogspot.com/2025/09/grand-theft-auto-iv-mobile-download-for.html",
           "https://galaxygamez01.blogspot.com/2025/10/far-cry-4-pc-download-full-guide-system.html",
           "https://galaxygamez01.blogspot.com/2025/10/gta-v-psp-download-free-iso-game-for.html",
-          "https://galaxygamez01.blogspot.com/2025/11/mini-militia-classic-da2-mmcapk-v0144.html"
+          "https://galaxygamez01.blogspot.com/2025/11/mini-militia-classic-da2-mmcapk-v0144.html",
+          "https://galaxygamez01.blogspot.com/2026/01/30mb-spider-man-far-from-home-ppsspp_13.html",
+          "https://galaxygamez01.blogspot.com/2026/01/580mb-efootball-2026-psp-highly.html",
+          "https://galaxygamez01.blogspot.com/2026/01/gta-v-apk-obb-mobile-download-highly.html"
         ],
         "interval_hours": 3,
         "posts_per_cycle": 3,
         "caption_template": null,
-        "last_posted_at": "2026-09-09T17:41:52.969315"
+        "last_posted_at": "2026-09-09T23:03:45.825687",
+        "username": "SONARIGAMEZ"
       },
       {
         "channel_id": "@sonrigames2",
-        "title": "Sonari Games",
+        "title": "\ud835\ude4e\ud835\ude4a\ud835\ude49\ud835\ude3c\ud835\ude4d\ud835\ude44 \ud835\ude42\ud835\ude3c\ud835\ude48\ud835\ude40\ud835\ude4e 2",
         "blog_feed_url": "https://galaxygamez01.blogspot.com/feeds/posts/default?max-results=500",
         "paused": false,
         "posted": [
@@ -123,27 +128,32 @@
           "https://galaxygamez01.blogspot.com/2025/09/grand-theft-auto-iv-mobile-download-for.html",
           "https://galaxygamez01.blogspot.com/2025/10/far-cry-4-pc-download-full-guide-system.html",
           "https://galaxygamez01.blogspot.com/2025/10/gta-v-psp-download-free-iso-game-for.html",
-          "https://galaxygamez01.blogspot.com/2025/11/mini-militia-classic-da2-mmcapk-v0144.html"
+          "https://galaxygamez01.blogspot.com/2025/11/mini-militia-classic-da2-mmcapk-v0144.html",
+          "https://galaxygamez01.blogspot.com/2026/01/30mb-spider-man-far-from-home-ppsspp_13.html",
+          "https://galaxygamez01.blogspot.com/2026/01/580mb-efootball-2026-psp-highly.html",
+          "https://galaxygamez01.blogspot.com/2026/01/gta-v-apk-obb-mobile-download-highly.html"
         ],
         "interval_hours": 3,
         "posts_per_cycle": 3,
         "caption_template": null,
-        "last_posted_at": "2026-09-09T17:42:01.384801"
+        "last_posted_at": "2026-09-09T23:03:53.327260",
+        "username": "sonrigames2"
       },
       {
         "channel_id": "@SONARIGAMESCHAT",
-        "title": "Sonari Games",
+        "title": "Sonari Games Support \ud83d\udde3\ufe0f",
         "blog_feed_url": "https://galaxygamez01.blogspot.com/feeds/posts/default?max-results=500",
         "paused": false,
         "posted": [],
         "interval_hours": 3,
         "posts_per_cycle": 3,
         "caption_template": null,
-        "last_posted_at": null
+        "last_posted_at": null,
+        "username": "SONARIGAMESCHAT"
       },
       {
         "channel_id": "@pcgamingbeasts",
-        "title": "Sonari Games",
+        "title": "Gaming Beasts-Pc Lovers",
         "blog_feed_url": "https://galaxygamez01.blogspot.com/feeds/posts/default?max-results=500",
         "paused": false,
         "posted": [
@@ -188,16 +198,20 @@
           "https://galaxygamez01.blogspot.com/2025/09/grand-theft-auto-iv-mobile-download-for.html",
           "https://galaxygamez01.blogspot.com/2025/10/far-cry-4-pc-download-full-guide-system.html",
           "https://galaxygamez01.blogspot.com/2025/10/gta-v-psp-download-free-iso-game-for.html",
-          "https://galaxygamez01.blogspot.com/2025/11/mini-militia-classic-da2-mmcapk-v0144.html"
+          "https://galaxygamez01.blogspot.com/2025/11/mini-militia-classic-da2-mmcapk-v0144.html",
+          "https://galaxygamez01.blogspot.com/2026/01/30mb-spider-man-far-from-home-ppsspp_13.html",
+          "https://galaxygamez01.blogspot.com/2026/01/580mb-efootball-2026-psp-highly.html",
+          "https://galaxygamez01.blogspot.com/2026/01/gta-v-apk-obb-mobile-download-highly.html"
         ],
         "interval_hours": 3,
         "posts_per_cycle": 3,
         "caption_template": null,
-        "last_posted_at": "2026-09-09T17:42:27.532241"
+        "last_posted_at": "2026-09-09T23:04:18.168836",
+        "username": "pcgamingbeasts"
       },
       {
         "channel_id": "@GALAXYGAMEZ01BACKUP",
-        "title": "Sonari Games",
+        "title": "GALAXY GAMEZ",
         "blog_feed_url": "https://galaxygamez01.blogspot.com/feeds/posts/default?max-results=500",
         "paused": false,
         "posted": [
@@ -242,12 +256,16 @@
           "https://galaxygamez01.blogspot.com/2025/09/grand-theft-auto-iv-mobile-download-for.html",
           "https://galaxygamez01.blogspot.com/2025/10/far-cry-4-pc-download-full-guide-system.html",
           "https://galaxygamez01.blogspot.com/2025/10/gta-v-psp-download-free-iso-game-for.html",
-          "https://galaxygamez01.blogspot.com/2025/11/mini-militia-classic-da2-mmcapk-v0144.html"
+          "https://galaxygamez01.blogspot.com/2025/11/mini-militia-classic-da2-mmcapk-v0144.html",
+          "https://galaxygamez01.blogspot.com/2026/01/30mb-spider-man-far-from-home-ppsspp_13.html",
+          "https://galaxygamez01.blogspot.com/2026/01/580mb-efootball-2026-psp-highly.html",
+          "https://galaxygamez01.blogspot.com/2026/01/gta-v-apk-obb-mobile-download-highly.html"
         ],
         "interval_hours": 3,
         "posts_per_cycle": 3,
         "caption_template": null,
-        "last_posted_at": "2026-09-09T17:42:35.303285"
+        "last_posted_at": "2026-09-09T23:04:25.736565",
+        "username": "GALAXYGAMEZ01BACKUP"
       }
     ]
   },
