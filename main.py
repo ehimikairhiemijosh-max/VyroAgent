@@ -3,17 +3,17 @@ Galaxy Gamez - Posting Engine (main.py)
 Runs every 3 hours via GitHub Actions.
 
 BUG FIX vs old version:
-  - OLD: random.shuffle(unposted)[:3]  -> random order, 3 at a time,
-         and a post was only marked "posted" if ALL channels succeeded,
-         so one failed channel caused a full repeat to everyone.
-  - NEW: strict feed order (oldest -> newest), ONE post per channel per
-         cycle, and "posted" is tracked PER CHANNEL, so a single failed
-         channel never causes a repeat on channels that already got it.
+- OLD: random.shuffle(unposted)[:3] -> random order, 3 at a time,
+  and a post was only marked "posted" if ALL channels succeeded,
+  so one failed channel caused a full repeat to everyone.
+- NEW: strict feed order (oldest -> newest), ONE post per channel per
+  cycle, and "posted" is tracked PER CHANNEL, so a single failed
+  channel never causes a repeat on channels that already got it.
 """
-
 import time
 from datetime import datetime, timedelta
 import re
+
 import requests
 import feedparser
 
@@ -26,15 +26,11 @@ from storage import (
     load_state, load_stats, save_stats, load_users, save_users,
     get_user, now_iso,
 )
-from telegram_api import send_with_retry, send_message
+from telegram_api import send_with_retry, send_message, get_chat
 from caption import build_caption, render_caption, extract_image
 
-
 MAX_FEED_ENTRIES = 1500  # safety cap so a feed with millions of posts can't exhaust memory/time
-
 _FEED_HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"}
-
-
 LAST_FETCH_DEBUG = {}
 
 
@@ -68,13 +64,14 @@ def _fetch_feed(url):
 
 def get_feed_entries(feed_url):
     """Returns entries OLDEST FIRST (strict chronological order).
+
     Most single RSS feed pages only return the newest ~10-25 items by
     default. This pulls as many as the platform allows:
-      - Blogger: max-results param can be raised directly on the URL
-      - WordPress: supports ?paged=N pagination on the /feed/ URL
-      - Everything else: takes whatever the feed naturally returns
-        (most self-hosted/generic RSS feeds don't support pagination at
-        all, so this is already the maximum available)
+    - Blogger: max-results param can be raised directly on the URL
+    - WordPress: supports ?paged=N pagination on the /feed/ URL
+    - Everything else: takes whatever the feed naturally returns
+      (most self-hosted/generic RSS feeds don't support pagination at
+      all, so this is already the maximum available)
     Capped at MAX_FEED_ENTRIES total as a safety limit."""
     all_entries = []
     seen_links = set()
@@ -150,23 +147,60 @@ def _is_in_free_trial(u):
     return elapsed < timedelta(hours=24)
 
 
+# Titles that mean "we never actually looked this channel up" - any
+# channel stored with one of these gets its title/username refreshed
+# live from Telegram instead of staying stuck on a placeholder.
+_PLACEHOLDER_TITLES = {None, "", "Sonari Games", "Connected channel", "Channel"}
+
+
+def _lookup_channel_display(cid):
+    """Fetches the real title (and @username, if public) for a channel
+    straight from Telegram, instead of ever hardcoding a channel name.
+    Falls back to the raw channel_id if the lookup fails for any reason
+    (bot not admin there yet, channel typo, etc.) - never crashes the
+    sync over a single bad channel."""
+    try:
+        info = get_chat(cid)
+        if info.get("ok"):
+            result = info["result"]
+            return result.get("title") or str(cid), result.get("username")
+    except Exception:
+        pass
+    return str(cid), None
+
+
 def ensure_default_admin(users):
-    """Keeps Josh's own channels in sync with DEFAULT_CHANNEL_IDS: adds any
-    new channel, drops any removed one, and leaves existing matching
-    channels (their posted history/schedule) untouched."""
+    """Keeps Josh's core channels (DEFAULT_CHANNEL_IDS) always present, and
+    refreshes any placeholder title/username live from Telegram - but is
+    now ADDITIVE ONLY. It used to fully rebuild the admin channel list from
+    DEFAULT_CHANNEL_IDS every single cycle, which silently deleted any
+    channel Josh added directly through the bot's own ➕ Add Channel /
+    🗑️ Remove Channel flow (that flow already worked for him at the data
+    level - get_user() has always pointed his real Telegram ID at this
+    same __admin__ record - it just kept getting wiped on the next sync,
+    seconds later). Now: default channels are guaranteed to exist, nothing
+    else is ever removed here - removal only happens when Josh actually
+    taps 🗑️ Remove Channel himself."""
     admin_id = "__admin__"
     legacy = _legacy_posted_links()
     existing = users.get(admin_id, {})
-    existing_channels = {c["channel_id"]: c for c in existing.get("channels", [])}
+    channels = list(existing.get("channels", []))
+    existing_ids = {c["channel_id"] for c in channels}
 
-    new_channels = []
     for cid in DEFAULT_CHANNEL_IDS:
-        if cid in existing_channels:
-            new_channels.append(existing_channels[cid])  # keep as-is
+        if cid in existing_ids:
+            ch = next(c for c in channels if c["channel_id"] == cid)
+            if ch.get("title") in _PLACEHOLDER_TITLES:
+                title, username = _lookup_channel_display(cid)
+                ch["title"] = title
+                ch["username"] = username
+                print(f"ensure_default_admin: refreshed display name for {cid} -> {title}")
         else:
-            new_channels.append({
+            title, username = _lookup_channel_display(cid)
+            channels.append({
                 "channel_id": cid,
-                "title": "Sonari Games",
+                "title": title,
+                "username": username,
                 "blog_feed_url": DEFAULT_BLOG_FEED_URL,
                 "paused": False,
                 "posted": list(legacy),
@@ -175,14 +209,14 @@ def ensure_default_admin(users):
                 "caption_template": None,
                 "last_posted_at": None,
             })
-            print(f"ensure_default_admin: added new channel {cid}")
+            print(f"ensure_default_admin: added new channel {cid} ({title})")
 
     users[admin_id] = {
         "is_admin": True,
         "banned": existing.get("banned", False),
         "strikes": existing.get("strikes", 0),
         "onboarding": existing.get("onboarding", {"step": None, "pending_channel_id": None}),
-        "channels": new_channels,
+        "channels": channels,
     }
     return users
 
@@ -194,17 +228,15 @@ def run_posting_cycle(manual=False, only_user_id=None, users=None):
     other command. This avoids a stale outer copy later overwriting the
     fresh changes made here (that overwrite was the cause of "Post Now"
     reposting/repeating the same entries every time).
+
     If `users` is None (the standalone GitHub Actions entry point), this
     loads and saves everything itself as before."""
     standalone = users is None
-
     state = load_state()
-
     if standalone:
         users = load_users()
     users = ensure_default_admin(users)
     stats = load_stats()
-
     feed_cache = {}  # blog_feed_url -> entries, avoid re-fetching same feed per cycle
     results = []
 
@@ -213,6 +245,7 @@ def run_posting_cycle(manual=False, only_user_id=None, users=None):
             continue
         if u.get("banned") and user_id != "__admin__":
             continue
+
         # Global pause only affects non-admin users - admin's own posting
         # keeps running even while everyone else is paused. Manual "Post
         # Now" always bypasses this regardless of who's calling it.
@@ -220,6 +253,7 @@ def run_posting_cycle(manual=False, only_user_id=None, users=None):
         # for everyone except admin, who is always exempt regardless.
         if state.get("paused") and user_id != "__admin__":
             continue
+
         for ch in u.get("channels", []):
             if ch.get("paused"):
                 continue
@@ -261,16 +295,14 @@ def run_posting_cycle(manual=False, only_user_id=None, users=None):
 
             for _ in range(posts_per_cycle):
                 entry = next_unposted(entries, posted_links)
-
                 if entry is None:
                     # Feed fully exhausted for this channel - loop back to start
                     posted_links.clear()
                     entry = next_unposted(entries, posted_links)
-
-                if entry is None:
-                    debug = f" | DEBUG: {LAST_FETCH_DEBUG}"
-                    results.append(f"{ch['channel_id']}: no posts in feed (feed had {len(entries)} entries total){debug}")
-                    break
+                    if entry is None:
+                        debug = f" | DEBUG: {LAST_FETCH_DEBUG}"
+                        results.append(f"{ch['channel_id']}: no posts in feed (feed had {len(entries)} entries total){debug}")
+                        break
 
                 image_url = extract_image(entry)
                 if user_id == "__admin__":
@@ -278,15 +310,15 @@ def run_posting_cycle(manual=False, only_user_id=None, users=None):
                 else:
                     template = ch.get("caption_template") or DEFAULT_GENERIC_TEMPLATE
                     caption = render_caption(entry, template)
-                success, message, _msg_id = send_with_retry(ch["channel_id"], image_url, caption)
 
+                success, message, _msg_id = send_with_retry(ch["channel_id"], image_url, caption)
                 stats["posts_sent"] = stats.get("posts_sent", 0) + 1
+
                 if success:
                     stats["success"] = stats.get("success", 0) + 1
                     posted_links.append(entry.link)  # ONLY mark posted for THIS channel
                     results.append(f"{ch['channel_id']}: OK - {entry.title}")
                     posted_any = True
-
                     if user_id != "__admin__" and not in_free_trial:
                         u["gemz_balance"] = u.get("gemz_balance", 0) - GEMZ_COST_PER_POST
                         if u["gemz_balance"] < GEMZ_COST_PER_POST:
@@ -310,7 +342,6 @@ def run_posting_cycle(manual=False, only_user_id=None, users=None):
 
             if posted_any:
                 ch["last_posted_at"] = now_iso()
-
                 if (was_first_post_ever and user_id != "__admin__"
                         and u.get("referred_by") and u.get("referral_completed")
                         and u.get("trial_started_at") is None):

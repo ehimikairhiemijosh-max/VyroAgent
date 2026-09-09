@@ -77,6 +77,7 @@ def admin_keyboard():
         "keyboard": [
             ["▶️ Post Now", "🔄 Refresh"],
             ["📊 Stats", "📡 Channels"],
+            ["➕ Add Channel", "🗑️ Remove Channel"],
             ["⏸️ Pause", "▶️ Resume"],
             ["📢 Broadcast", "👥 Users"],
             ["⚙️ Advanced", "❓ Help"],
@@ -262,12 +263,17 @@ def _format_post_results(results, users, target_id):
         by_channel.setdefault(channel_id, []).append(detail)
 
     u = get_user(users, target_id)
-    channel_titles = {str(ch["channel_id"]): ch.get("title", "Channel") for ch in u.get("channels", [])}
+    channel_display = {}
+    for ch in u.get("channels", []):
+        cid = str(ch["channel_id"])
+        title = ch.get("title") or cid
+        username = ch.get("username")
+        channel_display[cid] = f"{title} (@{username})" if username else title
 
     out = [box("POSTING COMPLETE")]
     total_ok = 0
     for channel_id, details in by_channel.items():
-        title = channel_titles.get(channel_id, channel_id)
+        title = channel_display.get(channel_id, channel_id)
         out.append(f"\n📢 {title}")
         for d in details:
             if d.startswith("OK - "):
