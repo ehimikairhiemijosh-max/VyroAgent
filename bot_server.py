@@ -48,12 +48,22 @@ def debug():
     import bot_commands
     import inspect
     src = inspect.getsource(bot_commands.admin_keyboard)
+
+    users = load_users()
+    admin_user = users.get("__admin__", {})
+    admin_channels = [
+        {"channel_id": ch.get("channel_id"), "title": ch.get("title")}
+        for ch in admin_user.get("channels", [])
+    ]
+
     return {
         "bot_commands_file": bot_commands.__file__,
         "cwd": os.getcwd(),
         "git_sync_repo_dir": git_sync.REPO_DIR,
         "admin_keyboard_has_add_channel": "Add Channel" in src,
         "admin_keyboard_source": src,
+        "admin_channel_count": len(admin_channels),
+        "admin_channels": admin_channels,
     }, 200
 
 
